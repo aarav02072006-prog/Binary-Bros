@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart & Checkout - Meesho</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo-container">
+            <h1 class="brand-logo">m meesho</h1>
+        </div>
+        <div class="header-nav-links">
+            <a href="index.html">Home</a>
+            <a href="product.html">Product Details</a>
+            <a href="cart.html" class="active">Cart & Saved</a>
+        </div>
+    </header>
+
+    <main class="container cart-container">
+        <div class="cart-alert-bar">
+            🔒 <strong>High Concurrency Lock Enabled:</strong> Items are reserved under your session. Cart inventory drops after timer expiry. <span id="cartTimer">02:37</span>
+        </div>
+
+        <div class="cart-grid">
+            <!-- Cart Items List -->
+            <div class="cart-items-section">
+                <h3>Shopping Cart (3 Items)</h3>
+                <div id="cartItemsList">
+                    <!-- Populated dynamically via app.js -->
+                </div>
+            </div>
+
+            <!-- Price Summary & Checkout Box -->
+            <div class="cart-summary-section">
+                <h3>Price Details (3 Items)</h3>
+                <div class="summary-row">
+                    <span>Total Product MRP</span>
+                    <span>₹3,147</span>
+                </div>
+                <div class="summary-row">
+                    <span>Wholesale Product Discount</span>
+                    <span class="text-green">-₹2,170</span>
+                </div>
+                <div class="summary-row">
+                    <span>Coupon Discount (BHARAT100)</span>
+                    <span class="text-green">-₹100</span>
+                </div>
+                <div class="summary-row">
+                    <span>Delivery Charges</span>
+                    <span class="text-green">FREE</span>
+                </div>
+                <hr>
+                <div class="summary-row total-row">
+                    <span>Order Total</span>
+                    <span>₹877</span>
+                </div>
+                
+                <button id="checkoutBtn" class="btn-success full-width">Proceed to Checkout →</button>
+                <p class="secure-text">🔒 256-Bit Encrypted Payment | COD Available</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
