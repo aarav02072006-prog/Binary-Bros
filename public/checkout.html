@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Meesho</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <h1 class="brand-logo"><a href="index.html" style="text-decoration:none; color:inherit;">m meesho</a></h1>
+    </header>
+
+    <main class="container" style="max-width: 800px;">
+        <h2 style="margin-bottom: 20px;">Checkout & Delivery Address</h2>
+        
+        <div id="checkoutFormContainer" style="background: #fff; padding: 24px; border-radius: 8px; border: 1px solid var(--border-color);">
+            <form id="orderForm" onsubmit="submitOrder(event)">
+                <h3>1. Shipping Details</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px;">
+                    <div>
+                        <label style="font-size: 13px; font-weight: bold;">Full Name</label>
+                        <input type="text" id="fullName" required style="width: 100%; padding: 10px; margin-top: 4px; border: 1px solid var(--border-color); border-radius: 4px;" placeholder="Chirag Singh">
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: bold;">Phone Number</label>
+                        <input type="tel" id="phone" required style="width: 100%; padding: 10px; margin-top: 4px; border: 1px solid var(--border-color); border-radius: 4px;" placeholder="9876543210">
+                    </div>
+                </div>
+
+                <div style="margin-top: 16px;">
+                    <label style="font-size: 13px; font-weight: bold;">Street Address / Building</label>
+                    <input type="text" id="address" required style="width: 100%; padding: 10px; margin-top: 4px; border: 1px solid var(--border-color); border-radius: 4px;" placeholder="House No, Street, Landmark">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                    <div>
+                        <label style="font-size: 13px; font-weight: bold;">City</label>
+                        <input type="text" id="city" required style="width: 100%; padding: 10px; margin-top: 4px; border: 1px solid var(--border-color); border-radius: 4px;" placeholder="Jaipur">
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: bold;">PIN Code (6 Digits)</label>
+                        <input type="text" id="pincode" maxlength="6" required onblur="checkPinCode(this.value)" style="width: 100%; padding: 10px; margin-top: 4px; border: 1px solid var(--border-color); border-radius: 4px;" placeholder="302020">
+                    </div>
+                </div>
+                <div id="pincodeStatus" style="font-size: 12px; margin-top: 6px; color: var(--success-green);"></div>
+
+                <h3 style="margin-top: 24px;">2. Payment Method</h3>
+                <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                    <label><input type="radio" name="payment" value="COD" checked> Cash on Delivery (COD)</label>
+                    <label><input type="radio" name="payment" value="UPI"> UPI / QR Code / Net Banking</label>
+                </div>
+
+                <button type="submit" class="btn-success" style="margin-top: 24px;">Place Order</button>
+            </form>
+        </div>
+
+        <div id="successContainer" style="display: none; background: #fff; padding: 40px; text-align: center; border-radius: 8px; border: 1px solid var(--border-color);">
+            <h2 style="color: var(--success-green); margin-bottom: 12px;">🎉 Order Placed Successfully!</h2>
+            <p id="orderIdText" style="font-size: 16px; font-weight: bold; margin-bottom: 8px;"></p>
+            <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Thank you for shopping with us. Your items are getting ready for dispatch.</p>
+            <a href="index.html" class="btn-success" style="display: inline-block; text-decoration: none; padding: 12px 24px;">Continue Shopping</a>
+        </div>
+    </main>
+
+    <script>
+        async function checkPinCode(pincode) {
+            if (pincode.length !== 6) return;
+            try {
+                const res = await fetch(`/api/check-delivery?pincode=${pincode}`);
+                const data = await res.json();
+                const statusEl = document.getElementById('pincodeStatus');
+                if (data.success) {
+                    statusEl.textContent = `✓ Delivery available! Estimated in ${data.deliveryDays} business days.`;
+                }
+            } catch (err) {
+                console.error('Error checking pincode:', err);
+            }
+        }
+
+        async function submitOrder(e) {
+            e.preventDefault();
+            const cart = JSON.parse(localStorage.getItem('meesho_cart')) || [];
+            if (cart.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+
+            const totalAmount = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+            const shippingAddress = {
+                fullName: document.getElementById('fullName').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                city: document.getElementById('city').value,
+                pincode: document.getElementById('pincode').value
+            };
+            const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: cart, shippingAddress, paymentMethod, totalAmount })
+                });
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    localStorage.removeItem('meesho_cart'); // Clear cart
+                    document.getElementById('orderForm').style.display = 'none';
+                    document.getElementById('successContainer').style.display = 'block';
+                    document.getElementById('orderIdText').textContent = `Order ID: ${data.orderId}`;
+                } else {
+                    alert(data.error || 'Failed to place order.');
+                }
+            } catch (err) {
+                console.error('Order submission error:', err);
+                alert('An error occurred while placing your order.');
+            }
+        }
+        <a href="profile.html" class="nav-item">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span>Profile</span>
+</a>
+    </script>
+</body>
+</html>

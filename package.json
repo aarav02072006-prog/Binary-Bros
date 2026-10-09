@@ -1,0 +1,26 @@
+{
+  "name": "binary-bros",
+  "version": "1.0.0",
+  "description": "This repository is made for Cliffesto Hackathon.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aarav02072006-prog/Binary-Bros.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/aarav02072006-prog/Binary-Bros/issues"
+  },
+  "homepage": "https://github.com/aarav02072006-prog/Binary-Bros#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "sqlite3": "^6.0.1"
+  }
+}

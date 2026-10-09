@@ -9,68 +9,59 @@
 <body>
     <header class="main-header">
         <div class="logo-container">
-            <h1 class="brand-logo">m meesho</h1>
+            <h1 class="brand-logo"><a href="index.html" style="text-decoration:none; color:inherit;">m meesho</a></h1>
         </div>
         <div class="header-nav-links">
             <a href="index.html">Home</a>
-            <a href="product.html" class="active">Product Details</a>
             <a href="cart.html">Cart & Saved</a>
         </div>
     </header>
 
-    <main class="container product-detail-container">
-        <!-- Flash Sale Warning Banner -->
-        <div class="flash-lock-banner">
-            ⚡ <strong>BHARAT FLASH INVENTORY:</strong> High Surge Active. Zero-Double-Booking Protocol Enabled. 
-            <span id="countdownTimer" class="timer-badge">02:52 Left</span>
-        </div>
-
-        <div class="product-detail-grid">
-            <!-- Product Images -->
-            <div class="pdp-image-section">
-                <img src="" alt="Kanjivaram Silk Saree" id="pdpImage" class="main-pdp-img">
-                <span class="badge-tag">100% Zari Woven</span>
-            </div>
-
-            <!-- Product Info & Purchasing Actions -->
-            <div class="pdp-info-section">
-                <h2 id="pdpTitle">Kanjivaram Art Silk Zari Woven Saree With Blouse Piece</h2>
-                <div class="rating-row">
-                    <span class="star-badge">4.3 ⭐</span>
-                    <span>3,560 Ratings & 125 Reviews</span>
-                </div>
-                <div class="price-box">
-                    <span id="pdpPrice" class="current-price">₹349</span>
-                    <span class="original-price">₹1,199</span>
-                    <span class="discount-badge">70% OFF</span>
-                </div>
-
-                <div class="size-selector">
-                    <label><strong>Select Size / नाप:</strong></label>
-                    <div class="size-options">
-                        <button class="size-btn active">Free Size (6.3m)</button>
-                    </div>
-                </div>
-
-                <!-- Reseller Earnings Banner -->
-                <div class="reseller-box">
-                    <p>💼 <strong>Meesho Reseller Earnings Mode:</strong> Share catalog with your custom margin on WhatsApp.</p>
-                </div>
-
-                <div class="action-buttons">
-                    <button id="addToCartBtn" class="btn-primary">Add to Cart</button>
-                    <button id="buyNowBtn" class="btn-success">Buy Now (Min Lock)</button>
-                </div>
-
-                <div class="trust-features">
-                    <p>✓ 7-Day Hassle-Free Returns</p>
-                    <p>✓ Direct UPI Instant Refund</p>
-                    <p>✓ Cash on Delivery Available</p>
-                </div>
-            </div>
+    <main class="container">
+        <div id="productDetailContainer" class="product-detail-grid" style="margin-top: 20px;">
+            <p>Loading product details...</p>
         </div>
     </main>
 
-    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const productId = params.get('id');
+
+            if (!productId) {
+                document.getElementById('productDetailContainer').innerHTML = '<p>No product selected.</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/products/${productId}`);
+                const data = await response.json();
+
+                if (response.ok && data.product) {
+                    const p = data.product;
+                    document.getElementById('productDetailContainer').innerHTML = `
+                        <div>
+                            <img src="${p.image}" alt="${p.title}" class="main-pdp-img" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30'" />
+                        </div>
+                        <div>
+                            <span class="bharat-badge">${p.category}</span>
+                            <h2 style="margin: 10px 0; font-size: 22px;">${p.title}</h2>
+                            <div class="price-tag" style="font-size: 24px; color: var(--primary-color);">₹${p.price}</div>
+                            <p style="color: #388e3c; font-weight: bold; margin: 10px 0;">Free Delivery | Cash on Delivery Available</p>
+                            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 15px 0;">
+                            <h4>Product Description</h4>
+                            <p style="color: #555; font-size: 14px; margin-top: 8px; line-height: 1.6;">${p.description}</p>
+                            <button onclick="alert('Added to cart successfully!')" class="btn-success" style="margin-top: 20px;">Add to Cart</button>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('productDetailContainer').innerHTML = '<p>Product not found.</p>';
+                }
+            } catch (err) {
+                console.error('Error loading product:', err);
+                document.getElementById('productDetailContainer').innerHTML = '<p>Error loading product details.</p>';
+            }
+        });
+    </script>
 </body>
 </html>

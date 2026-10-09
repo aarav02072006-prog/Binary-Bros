@@ -3,66 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping Cart & Checkout - Meesho</title>
+    <title>Shopping Cart - Meesho</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Cart Layout Structure */
+        .cart-page-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+        
+        .cart-items-card, .cart-summary-section {
+            background: #fff;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+        }
+
+        .cart-item-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+        }
+        .cart-item-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .cart-item-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .qty-btn {
+            background: #f0f0f0;
+            border: 1px solid var(--border-color);
+            padding: 2px 8px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .qty-btn:hover {
+            background: #e0e0e0;
+        }
+
+        /* Responsive Breakpoint for Mobile & Tablets */
+        @media screen and (max-width: 768px) {
+            .cart-page-grid {
+                grid-template-columns: 1fr; /* Stack items and summary vertically */
+                gap: 16px;
+            }
+            .cart-item-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .cart-item-img {
+                width: 100%;
+                height: 160px;
+            }
+            .cart-summary-section {
+                position: sticky;
+                bottom: 0;
+                box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+                z-index: 100;
+            }
+        }
+    </style>
 </head>
 <body>
     <header class="main-header">
-        <div class="logo-container">
-            <h1 class="brand-logo">m meesho</h1>
-        </div>
+        <h1 class="brand-logo"><a href="index.html" style="text-decoration:none; color:inherit;">m meesho</a></h1>
         <div class="header-nav-links">
             <a href="index.html">Home</a>
-            <a href="product.html">Product Details</a>
-            <a href="cart.html" class="active">Cart & Saved</a>
+            <a href="cart.html" class="active">Cart</a>
         </div>
     </header>
 
-    <main class="container cart-container">
-        <div class="cart-alert-bar">
-            🔒 <strong>High Concurrency Lock Enabled:</strong> Items are reserved under your session. Cart inventory drops after timer expiry. <span id="cartTimer">02:37</span>
-        </div>
-
-        <div class="cart-grid">
-            <!-- Cart Items List -->
-            <div class="cart-items-section">
-                <h3>Shopping Cart (3 Items)</h3>
+    <main class="container">
+        <h2 style="margin-bottom: 20px;">My Shopping Cart</h2>
+        
+        <div class="cart-page-grid">
+            <!-- Left Side: Items List -->
+            <div class="cart-items-card">
+                <h3 style="margin-bottom: 16px; font-size: 16px;">Cart Items</h3>
                 <div id="cartItemsList">
-                    <!-- Populated dynamically via app.js -->
+                    <p>Loading cart items...</p>
                 </div>
             </div>
 
-            <!-- Price Summary & Checkout Box -->
+            <!-- Right Side: Price Details & Checkout Button -->
             <div class="cart-summary-section">
-                <h3>Price Details (3 Items)</h3>
-                <div class="summary-row">
-                    <span>Total Product MRP</span>
-                    <span>₹3,147</span>
+                <h3>Price Details</h3>
+                <div class="summary-row" style="display: flex; justify-content: space-between; margin: 12px 0; font-size: 14px;">
+                    <span>Total Product Price</span>
+                    <span id="cartSubtotal">₹0</span>
                 </div>
-                <div class="summary-row">
-                    <span>Wholesale Product Discount</span>
-                    <span class="text-green">-₹2,170</span>
+                <div class="summary-row text-green" style="display: flex; justify-content: space-between; margin: 12px 0; font-size: 14px; color: var(--success-green);">
+                    <span>Discount</span>
+                    <span>- ₹0</span>
                 </div>
-                <div class="summary-row">
-                    <span>Coupon Discount (BHARAT100)</span>
-                    <span class="text-green">-₹100</span>
-                </div>
-                <div class="summary-row">
-                    <span>Delivery Charges</span>
-                    <span class="text-green">FREE</span>
-                </div>
-                <hr>
-                <div class="summary-row total-row">
+                <hr style="margin: 12px 0; border: 0; border-top: 1px solid var(--border-color);">
+                <div class="summary-row total-row" style="display: flex; justify-content: space-between; margin: 12px 0; font-weight: bold; font-size: 16px;">
                     <span>Order Total</span>
-                    <span>₹877</span>
+                    <span id="cartTotal">₹0</span>
                 </div>
-                
-                <button id="checkoutBtn" class="btn-success full-width">Proceed to Checkout →</button>
-                <p class="secure-text">🔒 256-Bit Encrypted Payment | COD Available</p>
+                <button onclick="proceedToCheckout()" class="btn-success" style="margin-top: 20px; width: 100%; padding: 12px; font-size: 15px;">Continue to Checkout</button>
             </div>
         </div>
     </main>
 
-    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCart();
+        });
+
+        function getCart() {
+            return JSON.parse(localStorage.getItem('meesho_cart')) || [];
+        }
+
+        function loadCart() {
+            const cart = getCart();
+            const container = document.getElementById('cartItemsList');
+            const subtotalEl = document.getElementById('cartSubtotal');
+            const totalEl = document.getElementById('cartTotal');
+
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="color: #666; padding: 10px 0;">Your cart is empty. <a href="index.html" style="color: var(--primary-color); font-weight: bold;">Start shopping</a></p>';
+                subtotalEl.textContent = '₹0';
+                totalEl.textContent = '₹0';
+                return;
+            }
+
+            let subtotal = 0;
+            container.innerHTML = cart.map((item, index) => {
+                const itemQty = item.quantity || 1;
+                const itemTotal = item.price * itemQty;
+                subtotal += itemTotal;
+
+                return `
+                    <div class="cart-item-row">
+                        <img src="${item.image}" alt="${item.title}" class="cart-item-img" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30'" />
+                        <div style="flex-grow: 1; width: 100%;">
+                            <h4 style="font-size: 14px; margin-bottom: 4px; color: #333;">${item.title}</h4>
+                            <div style="font-weight: bold; font-size: 15px; color: #000;">₹${item.price}</div>
+                            
+                            <div class="quantity-controls">
+                                <span style="font-size: 12px; color: #666;">Qty:</span>
+                                <button class="qty-btn" onclick="updateQuantity(${index}, -1)">-</button>
+                                <span style="font-weight: bold; padding: 0 6px; font-size: 13px;">${itemQty}</span>
+                                <button class="qty-btn" onclick="updateQuantity(${index}, 1)">+</button>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: bold; font-size: 15px;">₹${itemTotal}</div>
+                            <button onclick="removeItem(${index})" style="background: none; border: none; color: #e53935; cursor: pointer; font-size: 12px; margin-top: 6px; font-weight: 600;">Remove</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            subtotalEl.textContent = `₹${subtotal}`;
+            totalEl.textContent = `₹${subtotal}`;
+        }
+
+        function updateQuantity(index, change) {
+            let cart = getCart();
+            if (cart[index]) {
+                cart[index].quantity = (cart[index].quantity || 1) + change;
+                if (cart[index].quantity < 1) {
+                    cart[index].quantity = 1;
+                }
+                localStorage.setItem('meesho_cart', JSON.stringify(cart));
+                loadCart();
+            }
+        }
+
+        function removeItem(index) {
+            let cart = getCart();
+            cart.splice(index, 1);
+            localStorage.setItem('meesho_cart', JSON.stringify(cart));
+            loadCart();
+        }
+
+        function proceedToCheckout() {
+            const cart = getCart();
+            if (cart.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+            window.location.href = 'checkout.html';
+        }
+    </script>
 </body>
 </html>

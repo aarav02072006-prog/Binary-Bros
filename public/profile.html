@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile & Login - Meesho</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .auth-card {
+            max-width: 420px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 32px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0 20px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+        }
+        .auth-input:focus {
+            border-color: var(--primary-color);
+        }
+        .otp-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0 25px 0;
+        }
+        .otp-box {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            outline: none;
+        }
+        .otp-box:focus {
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <h1 class="brand-logo"><a href="index.html" style="text-decoration:none; color:inherit;">m meesho</a></h1>
+        <div class="header-nav-links">
+            <a href="index.html">Home</a>
+            <a href="cart.html">Cart</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="auth-card" id="authCard">
+            <!-- State 1: Mobile Number Form -->
+            <div id="phoneStep">
+                <h2 style="font-size: 22px; color: var(--primary-color); margin-bottom: 6px;">Sign Up / Sign In</h2>
+                <p style="color: #666; font-size: 13px; margin-bottom: 24px;">Enter your mobile number to get started with Meesho</p>
+                
+                <form onsubmit="handleSendOtp(event)">
+                    <label style="font-size: 13px; font-weight: bold;">Mobile Number</label>
+                    <div style="display: flex; align-items: center; border: 1px solid var(--border-color); border-radius: 6px; margin-top: 6px; overflow: hidden;">
+                        <span style="padding: 12px; background: #f4f4f4; font-weight: bold; border-right: 1px solid var(--border-color);">+91</span>
+                        <input type="tel" id="phoneNumber" maxlength="10" required placeholder="Enter 10-digit number" style="border: none; padding: 12px; width: 100%; outline: none; font-size: 15px;">
+                    </div>
+                    <button type="submit" class="btn-success" style="margin-top: 24px;">Send OTP</button>
+                </form>
+            </div>
+
+            <!-- State 2: OTP Verification Form (Hidden Initially) -->
+            <div id="otpStep" style="display: none;">
+                <h2 style="font-size: 22px; color: var(--primary-color); margin-bottom: 6px;">Enter OTP</h2>
+                <p style="color: #666; font-size: 13px; margin-bottom: 20px;">We've sent a 4-digit code to <span id="displayPhone" style="font-weight: bold; color: #333;"></span></p>
+                <p style="font-size: 11px; color: #888; margin-bottom: 15px;">(Hint: Check your server terminal window to see the simulated SMS OTP code!)</p>
+
+                <form onsubmit="handleVerifyOtp(event)">
+                    <div class="otp-container">
+                        <input type="text" maxlength="1" class="otp-box" required autofocus>
+                        <input type="text" maxlength="1" class="otp-box" required>
+                        <input type="text" maxlength="1" class="otp-box" required>
+                        <input type="text" maxlength="1" class="otp-box" required>
+                    </div>
+                    <button type="submit" class="btn-success">Verify & Sign In</button>
+                </form>
+                <button onclick="resetAuth()" style="background: none; border: none; color: var(--primary-color); margin-top: 15px; cursor: pointer; font-size: 13px; width: 100%; text-align: center;">Change Mobile Number</button>
+            </div>
+
+            <!-- State 3: Logged In Dashboard (Hidden Initially) -->
+            <div id="profileDashboard" style="display: none; text-align: center;">
+                <div style="width: 70px; height: 70px; background: #fce4ec; color: var(--primary-color); font-size: 28px; font-weight: bold; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin: 0 auto 16px auto;" id="userAvatar">U</div>
+                <h2 id="userName" style="font-size: 20px; margin-bottom: 4px;">User Profile</h2>
+                <p id="userPhone" style="color: #666; font-size: 13px; margin-bottom: 24px;"></p>
+                
+                <div style="border-top: 1px solid var(--border-color); padding-top: 20px; text-align: left;">
+                    <p style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">My Orders</p>
+                    <p style="color: #666; font-size: 13px; margin-bottom: 16px;">You have no active orders yet.</p>
+                    
+                    <button onclick="handleLogout()" style="background: #ffebee; color: #c62828; border: none; padding: 10px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer;">Log Out</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentPhone = '';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginState();
+            setupOtpInputs();
+        });
+
+        function checkLoginState() {
+            const savedUser = localStorage.getItem('meesho_user');
+            if (savedUser) {
+                const user = JSON.parse(savedUser);
+                document.getElementById('phoneStep').style.display = 'none';
+                document.getElementById('otpStep').style.display = 'none';
+                document.getElementById('profileDashboard').style.display = 'block';
+                
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('userPhone').textContent = `+91 ${user.phone}`;
+                document.getElementById('userAvatar').textContent = user.phone.slice(-2);
+            }
+        }
+
+        async function handleSendOtp(e) {
+            e.preventDefault();
+            const phone = document.getElementById('phoneNumber').value.trim();
+            if (phone.length !== 10) {
+                alert('Please enter a valid 10-digit mobile number.');
+                return;
+            }
+
+            currentPhone = phone;
+            try {
+                const res = await fetch('/api/auth/send-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    document.getElementById('phoneStep').style.display = 'none';
+                    document.getElementById('otpStep').style.display = 'block';
+                    document.getElementById('displayPhone').textContent = `+91 ${phone}`;
+                } else {
+                    alert(data.error || 'Failed to send OTP.');
+                }
+            } catch (err) {
+                console.error('Error sending OTP:', err);
+                alert('Network error while sending OTP.');
+            }
+        }
+
+        async function handleVerifyOtp(e) {
+            e.preventDefault();
+            const boxes = document.querySelectorAll('.otp-box');
+            let otp = '';
+            boxes.forEach(box => otp += box.value);
+
+            if (otp.length !== 4) {
+                alert('Please enter the complete 4-digit OTP.');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/auth/verify-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: currentPhone, otp })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    localStorage.setItem('meesho_user', JSON.stringify(data.user));
+                    checkLoginState();
+                } else {
+                    alert(data.error || 'Incorrect OTP.');
+                }
+            } catch (err) {
+                console.error('Error verifying OTP:', err);
+                alert('Verification failed.');
+            }
+        }
+
+        function setupOtpInputs() {
+            const boxes = document.querySelectorAll('.otp-box');
+            boxes.forEach((box, index) => {
+                box.addEventListener('input', (e) => {
+                    if (e.target.value && index < boxes.length - 1) {
+                        boxes[index + 1].focus();
+                    }
+                });
+                box.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backarrow' || e.key === 'Backspace' && !box.value && index > 0) {
+                        boxes[index - 1].focus();
+                    }
+                });
+            });
+        }
+
+        function resetAuth() {
+            document.getElementById('otpStep').style.display = 'none';
+            document.getElementById('phoneStep').style.display = 'block';
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('meesho_user');
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>
